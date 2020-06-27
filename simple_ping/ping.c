@@ -15,17 +15,24 @@ main(int argc, char **argv)
 	struct addrinfo	*ai;
 
 	opterr = 0;		/* don't want getopt() writing to stderr */
-	while ( (c = getopt(argc, argv, "v")) != -1) {
+	while ( (c = getopt(argc, argv, "vhbt::q")) != -1) {
 		switch (c) {
 		case 'v':
 			verbose++;
 			break;
-
+        case 'h':
+            printf("abcd");
+            exit(0);
+        case 'b':
+            break;
+        case 't':
+            break;
+        case 'q':
+            break;
 		case '?':
 			err_quit("unrecognized option: %c", c);
 		}
 	}
-
 	if (optind != argc-1)
 		err_quit("usage: ping [ -v ] <hostname>");
 	host = argv[optind];
