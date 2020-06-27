@@ -1,4 +1,4 @@
-#include "ping.h"            
+#include "ping.h"
 
 struct proto	proto_v4 = { proc_v4, send_v4, NULL, NULL, 0, IPPROTO_ICMP };
 
@@ -7,6 +7,11 @@ struct proto	proto_v6 = { proc_v6, send_v6, NULL, NULL, 0, IPPROTO_ICMPV6 };
 #endif
 
 int	datalen = 56;		/* data that goes with ICMP echo request */
+int mode_broadcast = 0;
+int mode_quiet = 0;
+int mode_set_ttl = 0;
+int ttlval;
+
 
 int
 main(int argc, char **argv)
@@ -15,7 +20,7 @@ main(int argc, char **argv)
 	struct addrinfo	*ai;
 
 	opterr = 0;		/* don't want getopt() writing to stderr */
-	while ( (c = getopt(argc, argv, "vhbt::q")) != -1) {
+	while ( (c = getopt(argc, argv, "vhbt:q")) != -1) {
 		switch (c) {
 		case 'v':
 			verbose++;
@@ -24,10 +29,16 @@ main(int argc, char **argv)
             printf("abcd");
             exit(0);
         case 'b':
+            printf("Permits sending of broadcast messages. \n");
+            mode_broadcast = 1;
             break;
         case 't':
+            mode_set_ttl = 1;
+            ttlval = atoi(argv[optind - 1]);
+            printf("Set ttl value to %d. \n", ttlval);
             break;
         case 'q':
+            mode_quiet = 1;
             break;
 		case '?':
 			err_quit("unrecognized option: %c", c);
@@ -238,6 +249,13 @@ readloop(void)
 
 	size = 60 * 1024;		/* OK if setsockopt fails */
 	setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &size, sizeof(size));
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, (const char*)&mode_broadcast, sizeof(mode_broadcast)) < 0) exit(2);
+    if (mode_set_ttl == 1) {
+        if (setsockopt(sockfd, IPPROTO_IP, IP_TTL, &ttlval, sizeof(ttlval)) < 0) exit(2);
+    }
+
+
 
 	sig_alrm(SIGALRM);		/* send first packet */
 
