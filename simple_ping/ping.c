@@ -21,7 +21,7 @@ main(int argc, char **argv)
 	struct addrinfo	*ai;
 
 	opterr = 0;		/* don't want getopt() writing to stderr */
-	while ( (c = getopt(argc, argv, "vhbt:qs:")) != -1) {
+	while ( (c = getopt(argc, argv, "vhbt:qs:l:")) != -1) {
 		switch (c) {
 		case 'v':
 			verbose++;
@@ -45,6 +45,10 @@ main(int argc, char **argv)
         case 's':
             steps = atoi(argv[optind - 1]);
             printf("%d packets will be sent. \n", steps);
+            break;
+        case 'l':
+            datalen = atoi(argv[optind - 1]);
+            printf("Set datalen to %d. \n", datalen);
             break;
 		case '?':
 			err_quit("unrecognized option: %c", c);
