@@ -226,7 +226,7 @@ readloop(void)
 	ssize_t			n;
 	struct timeval	tval;
 
-	sockfd = socket(pr->sasend->sa_family, SOCK_RAW, pr->icmpproto);
+	sockfd = socket(pr->sasend->sa_family, SOCK_DGRAM, pr->icmpproto);
 	setuid(getuid());		/* don't need special permissions any more */
 
 	size = 60 * 1024;		/* OK if setsockopt fails */
@@ -234,7 +234,7 @@ readloop(void)
 
 	sig_alrm(SIGALRM);		/* send first packet */
 
-	for ( ; ; ) {
+	for (; ; ) {
 		len = pr->salen;
 		n = recvfrom(sockfd, recvbuf, sizeof(recvbuf), 0, pr->sarecv, &len);
 		if (n < 0) {
