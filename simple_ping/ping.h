@@ -42,6 +42,10 @@ pid_t pid;			/* our PID */
 int	 sockfd;
 int	 verbose;
 int    daemon_proc;            /* set nonzero by daemon_init() */
+int ttlval;
+int mode_broadcast;
+int mode_quiet;
+int mode_set_ttl;
 
 /* function prototypes */
 void	 proc_v4(char *, ssize_t, struct timeval *);
