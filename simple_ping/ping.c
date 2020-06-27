@@ -11,6 +11,7 @@ int mode_broadcast = 0;
 int mode_quiet = 0;
 int mode_set_ttl = 0;
 int ttlval;
+int steps = INT16_MAX;
 
 
 int
@@ -20,7 +21,7 @@ main(int argc, char **argv)
 	struct addrinfo	*ai;
 
 	opterr = 0;		/* don't want getopt() writing to stderr */
-	while ( (c = getopt(argc, argv, "vhbt:q")) != -1) {
+	while ( (c = getopt(argc, argv, "vhbt:qs:")) != -1) {
 		switch (c) {
 		case 'v':
 			verbose++;
@@ -29,8 +30,8 @@ main(int argc, char **argv)
             printf("abcd");
             exit(0);
         case 'b':
-            printf("Permits sending of broadcast messages. \n");
             mode_broadcast = 1;
+            printf("Permits sending of broadcast messages. \n");
             break;
         case 't':
             mode_set_ttl = 1;
@@ -39,6 +40,11 @@ main(int argc, char **argv)
             break;
         case 'q':
             mode_quiet = 1;
+            printf("Quiet mode on. \n");
+            break;
+        case 's':
+            steps = atoi(argv[optind - 1]);
+            printf("%d packets will be sent. \n", steps);
             break;
 		case '?':
 			err_quit("unrecognized option: %c", c);
@@ -258,7 +264,7 @@ readloop(void)
 
 	sig_alrm(SIGALRM);		/* send first packet */
 
-	for (; ; ) {
+	for (int i = 0; i < steps ; i ++ ) {
 		len = pr->salen;
 		n = recvfrom(sockfd, recvbuf, sizeof(recvbuf), 0, pr->sarecv, &len);
 		if (n < 0) {

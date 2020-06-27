@@ -46,6 +46,7 @@ int ttlval;
 int mode_broadcast;
 int mode_quiet;
 int mode_set_ttl;
+int steps;
 
 /* function prototypes */
 void	 proc_v4(char *, ssize_t, struct timeval *);
