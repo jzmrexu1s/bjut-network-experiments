@@ -11,8 +11,11 @@ int mode_broadcast = 0;
 int mode_quiet = 0;
 int mode_set_ttl = 0;
 int ttlval;
-int steps = INT16_MAX;
-
+int packets_to_transmit = INT16_MAX;
+int packets_received = 0;
+double rtt_sum = 0;
+double rtt_min = INT16_MAX;
+double rtt_max = INT16_MIN;
 
 int
 main(int argc, char **argv)
@@ -43,8 +46,8 @@ main(int argc, char **argv)
             printf("Quiet mode on. \n");
             break;
         case 's':
-            steps = atoi(argv[optind - 1]);
-            printf("%d packets will be sent. \n", steps);
+            packets_to_transmit = atoi(argv[optind - 1]);
+            printf("%d packets will be sent. \n", packets_to_transmit);
             break;
         case 'l':
             datalen = atoi(argv[optind - 1]);
@@ -60,6 +63,8 @@ main(int argc, char **argv)
 
 	pid = getpid();
 	signal(SIGALRM, sig_alrm);
+
+	signal(SIGINT, sig_terminate);
 
 	ai = host_serv(host, NULL, 0, 0);
 
@@ -85,7 +90,19 @@ main(int argc, char **argv)
 
 	readloop();
 
+    print_statistics();
+
 	exit(0);
+}
+
+void
+print_statistics()
+{
+    printf("\n--- %s ping stastistics --- \n", Sock_ntop_host(pr->sarecv, pr->salen));
+    printf("%d packets transmitted, %d packets received, %.1f%% packet loss\n", packets_to_transmit, packets_received,
+           0.01 * packets_received / packets_to_transmit);
+    printf("round-trip min/avg/max = %.3f/%.3f/%.3f ms\n", rtt_min, rtt_sum/packets_received, rtt_max);
+    exit(0);
 }
 
 void
@@ -113,9 +130,14 @@ proc_v4(char *ptr, ssize_t len, struct timeval *tvrecv)
 		tvsend = (struct timeval *) icmp->icmp_data;
 		tv_sub(tvrecv, tvsend);
 		rtt = tvrecv->tv_sec * 1000.0 + tvrecv->tv_usec / 1000.0;
+		rtt_sum += rtt;
+		if (rtt > rtt_max) rtt_max = rtt;
+		if (rtt < rtt_min) rtt_min = rtt;
+		packets_received ++;
         if (mode_quiet == 0) printf("%d bytes from %s: seq=%u, ttl=%d, rtt=%.3f ms\n",
                                     icmplen, Sock_ntop_host(pr->sarecv, pr->salen),
                                     icmp->icmp_seq, ip->ip_ttl, rtt);
+
 
 	} else if (verbose) {
 		printf("  %d bytes from %s: type = %d, code = %d\n",
@@ -264,11 +286,9 @@ readloop(void)
         if (setsockopt(sockfd, IPPROTO_IP, IP_TTL, &ttlval, sizeof(ttlval)) < 0) exit(2);
     }
 
-
-
 	sig_alrm(SIGALRM);		/* send first packet */
 
-	for (int i = 0; i < steps ; i ++ ) {
+	for (int i = 0; i < packets_to_transmit ; i ++ ) {
 		len = pr->salen;
 		n = recvfrom(sockfd, recvbuf, sizeof(recvbuf), 0, pr->sarecv, &len);
 		if (n < 0) {
@@ -290,6 +310,15 @@ sig_alrm(int signo)
 
         alarm(1);
         return;         /* probably interrupts recvfrom() */
+}
+
+void
+sig_terminate(int signo)
+{
+    if (signo == SIGINT) {
+        print_statistics();
+    }
+    exit(0);
 }
 
 void

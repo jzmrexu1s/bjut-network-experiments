@@ -22,6 +22,9 @@
 #include	<net/if.h>
 #include <stdarg.h>
 #include <syslog.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+#include <unistd.h>
 #ifdef  HAVE_SOCKADDR_DL_STRUCT
 # include       <net/if_dl.h>
 #endif
@@ -46,7 +49,7 @@ int ttlval;
 int mode_broadcast;
 int mode_quiet;
 int mode_set_ttl;
-int steps;
+int packets_to_transmit;
 
 /* function prototypes */
 void	 proc_v4(char *, ssize_t, struct timeval *);
@@ -55,7 +58,9 @@ void	 send_v4(void);
 void	 send_v6(void);
 void	 readloop(void);
 void	 sig_alrm(int);
+void     sig_terminate(int);
 void	 tv_sub(struct timeval *, struct timeval *);
+void     print_statistics();
 
 char * Sock_ntop_host(const struct sockaddr *sa, socklen_t salen);
 struct addrinfo* host_serv(const char *host, const char *serv, int family, int socktype);
