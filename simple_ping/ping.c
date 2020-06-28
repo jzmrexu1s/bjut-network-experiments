@@ -286,6 +286,7 @@ readloop(void)
     if (setsockopt(sockfd, SOL_SOCKET, SO_BROADCAST, (const char*)&mode_broadcast, sizeof(mode_broadcast)) < 0) exit(2);
     if (mode_set_ttl == 1) {
         if (setsockopt(sockfd, IPPROTO_IP, IP_TTL, &ttlval, sizeof(ttlval)) < 0) exit(2);
+        if (setsockopt(sockfd, IPPROTO_IP, IP_MULTICAST_TTL, &ttlval, sizeof(ttlval)) < 0) exit(2);
     }
 
 	sig_alrm(SIGALRM);		/* send first packet */
