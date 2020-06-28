@@ -30,7 +30,9 @@ main(int argc, char **argv)
 			verbose++;
 			break;
         case 'h':
-            printf("abcd");
+            printf("--- Help ---\n");
+            printf("-v Verbose mode on. \n-h Show help. \n-b Permits sending of broadcast messages (IPV4 only). \n-t Set TTL value (IPV4 only). \n");
+            printf("-q Quiet mode on. Only print statistics before exit. \n-s Set packets to send. \n-l Set the length of data. \n");
             exit(0);
         case 'b':
             mode_broadcast = 1;
