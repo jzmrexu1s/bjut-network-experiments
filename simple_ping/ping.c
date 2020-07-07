@@ -12,6 +12,7 @@ int mode_quiet = 0;
 int mode_set_ttl = 0;
 int ttlval;
 int packets_to_transmit = INT16_MAX;
+int packets_transmitted = 0;
 int packets_received = 0;
 double rtt_sum = 0;
 double rtt_min = INT16_MAX;
@@ -101,8 +102,8 @@ void
 print_statistics()
 {
     printf("\n--- %s ping stastistics --- \n", Sock_ntop_host(pr->sarecv, pr->salen));
-    printf("%d packets transmitted, %d packets received, %.1f%% packet loss\n", packets_to_transmit, packets_received,
-           0.01 * packets_received / packets_to_transmit);
+    printf("%d packets transmitted, %d packets received, %.1f%% packet loss\n", packets_transmitted, packets_received,
+           0.01 * packets_received / packets_transmitted);
     printf("round-trip min/avg/max = %.3f/%.3f/%.3f ms\n", rtt_min, rtt_sum/packets_received, rtt_max);
     exit(0);
 }
@@ -294,6 +295,7 @@ readloop(void)
 	for (int i = 0; i < packets_to_transmit ; i ++ ) {
 		len = pr->salen;
 		n = recvfrom(sockfd, recvbuf, sizeof(recvbuf), 0, pr->sarecv, &len);
+		packets_transmitted ++;
 		if (n < 0) {
 			if (errno == EINTR)
 				continue;
